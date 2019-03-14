@@ -8,7 +8,7 @@ from pyfirmata import Arduino, util
 
 UI_SCREEN = "leonardo.ui"
 LEO_COMM_PORT = "COM5"
-LOOP_DELAY_S = 0.1
+LOOP_DELAY_S = 0.091
 
 
 class Leonardo:
@@ -79,6 +79,26 @@ class Leonardo:
 		return value
 
 
+def sec2timestring(secs):
+	w = int(secs/(7*24*60*60))
+	d = int(secs/(24*60*60)) % 7
+	h = int(secs/(60*60)) % 24
+	m = int(secs/60) % 60
+	s = secs % 60
+	text = []
+	if w > 0:
+		text.append(f"{w}w")
+	if d > 0:
+		text.append(f"{d}d")
+	if h > 0:
+		text.append(f"{h}h")
+	if m > 0:
+		text.append(f"{m}m")
+	if s > 0:
+		text.append("%.1fs" % s)
+	return " ".join(text)
+
+
 def main():
 	win = tkinter.Tk()
 	win.title("LattePanda sensor demo")
@@ -115,7 +135,7 @@ def main():
 	while True:
 		leo.read()
 		elapsed = time.time() - t0
-		time_widget.set("%.3f" % elapsed)
+		time_widget.set(sec2timestring(elapsed))
 		for key, widget in widgets.items():
 			v = getattr(leo, key)
 			if key in ("T0", "T1", "timestamp") and v is not None:
