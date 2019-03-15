@@ -14,7 +14,7 @@ from pyfirmata import Arduino, util
 logging.basicConfig(
 	filemode='a+', 
 	filename='logfile.txt', 
-	level=logging.DEBUG, 
+	level=logging.INFO, 
 	format='%(asctime)s (%(module)s,%(lineno)d,%(levelname)s) %(message)s',
 	)
 logger = logging.getLogger(__file__)
@@ -161,8 +161,8 @@ def main():
 			leo.read()
 		except Exception as e:
 			logger.exception("Exception raised")
-		elapsed = time.time() - t0
-		time_widget.set(sec2timestring(elapsed))
+		elapsed = sec2timestring(time.time() - t0)
+		time_widget.set(elapsed)
 		msg = []
 		for key, widget in widgets.items():
 			v = getattr(leo, key)
@@ -174,6 +174,7 @@ def main():
 			try:
 				widget.set(str(v))
 				msg.append(f"{key}={v}")
+				msg.append(f"elapsed={elapsed}")
 			except Exception as e:
 				logger.exception("Exception raised")
 		if time.time() > report:
