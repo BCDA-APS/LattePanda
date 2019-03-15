@@ -15,7 +15,7 @@ logging.basicConfig(
 	filemode='a+', 
 	filename='logfile.txt', 
 	level=logging.DEBUG, 
-	format='%(asctime)s %(message)s',
+	format='%(asctime)s (%(module)s,%(lineno)d,%(levelname)s) %(message)s',
 	)
 logger = logging.getLogger(__file__)
 
@@ -60,10 +60,10 @@ class Leonardo:
 		self.PIR = self.read_raw(self.pin_pir)
 		if self.PIR and not self.pir_previous:
 			self.pir_counter += 1
-			logger.info(f"PIR motion detected {self.pir_counter}")
+			logger.debug(f"PIR motion detected {self.pir_counter}")
 			self.pin_led.write(1)
 		elif not self.PIR and self.pir_previous:
-			logger.info("PIR reset")
+			logger.debug("PIR reset")
 			self.pin_led.write(0)
 		self.t0 = time.time()
 
