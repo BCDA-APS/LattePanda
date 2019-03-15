@@ -174,9 +174,9 @@ def main():
 			try:
 				widget.set(str(v))
 				msg.append(f"{key}={v}")
-				msg.append(f"elapsed={elapsed}")
 			except Exception as e:
 				logger.exception("Exception raised")
+		msg.append(f"elapsed={elapsed}")
 		if time.time() > report:
 			report += REPORT_INTERVAL_S
 			logger.info(" ".join(msg))
