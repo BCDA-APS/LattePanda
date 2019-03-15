@@ -75,7 +75,7 @@ class Leonardo:
 			count += 1
 			signal = pin.read()
 		if signal is None:
-			logger.warning(f"port {self.port}: no signal from {pin} after {retries} retries")
+			logger.debug(f"port {self.port}: no signal from {pin} after {retries} retries")
 		return signal
 
 	def read_temperature(self, pin):
