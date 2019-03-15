@@ -1,14 +1,28 @@
-import sys
-import tkinter		# can't import PyQt5,QtWidgets: ImportError: DLL load failed: The specified module could not be found.
 
+"""
+Demo the LattePanda on-board Arduino I/O capabilities with Python
+"""
+
+import logging
 import math
+import sys
 import time
+import tkinter
+
 from pyfirmata import Arduino, util
 
+logging.basicConfig(
+	filemode='a+', 
+	filename='logfile.txt', 
+	level=logging.DEBUG, 
+	format='%(asctime)s %(message)s',
+	)
+logger = logging.getLogger(__file__)
 
 UI_SCREEN = "leonardo.ui"
 LEO_COMM_PORT = "COM5"
 LOOP_DELAY_S = 0.091
+REPORT_INTERVAL_S = 600
 
 
 class Leonardo:
@@ -27,6 +41,8 @@ class Leonardo:
 		self.pin_t1 = self.leonardo.get_pin("a:1:i")
 		self.pin_ldr = self.leonardo.get_pin("a:2:i")
 		self.pin_pir = self.leonardo.get_pin("d:9:i")
+		self.pir_counter = 0
+		self.pir_previous = None
 		
 		for item in (self.pin_t0, self.pin_t1, self.pin_ldr, self.pin_pir):
 			item.enable_reporting()
@@ -39,14 +55,11 @@ class Leonardo:
 		self.T0 = self.read_temperature(self.pin_t0)
 		self.T1 = self.read_temperature(self.pin_t1)
 		self.LDR = self.read_raw(self.pin_ldr)
+		self.pir_previous = self.PIR
 		self.PIR = self.read_raw(self.pin_pir)
-		# print(
-		# 	f"{self.timestamp}",
-		# 	f" T0={self.T0}",
-		# 	f" T1={self.T1}",
-		# 	f" LDR={self.LDR}",
-		# 	f" PIR={self.PIR}",
-		# )
+		if self.PIR and not self.pir_previous:
+			self.pir_counter += 1
+			logger.info("PIR motion detected")
 		self.t0 = time.time()
 
 	def read_raw(self, pin, retries=5):
@@ -56,6 +69,8 @@ class Leonardo:
 		while signal is None and count < retries:
 			count += 1
 			signal = pin.read()
+		if signal is None:
+			logger.warning(f"port {self.port}: no signal from {pin} after {retries} retries")
 		return signal
 
 	def read_temperature(self, pin):
@@ -105,12 +120,13 @@ def main():
 	
 	# build form
 	config = """
-	T0         \t  NTC 10k Thermistor 1, C
-	T1         \t  NTC 10k Thermistor 2, C
-	LDR        \t  LDR photoresistor
-	PIR        \t  PIR motion sensor
-	timestamp  \t  update time, s
-	time       \t  elapsed system time
+	T0          \t  NTC 10k Thermistor 1, C
+	T1          \t  NTC 10k Thermistor 2, C
+	LDR         \t  LDR photoresistor
+	PIR         \t  PIR motion sensor
+	pir_counter \t  motion events counted
+	timestamp   \t  update time, s
+	time        \t  elapsed system time
 	"""
 	row = 0
 	widgets = {}
@@ -126,21 +142,36 @@ def main():
 	time_widget = widgets["time"]
 	del widgets["time"]
 	
-	print("Connecting with Arduino ...")
+	logger.info("Connecting with Arduino ...")
 	leo = Leonardo()
-	print("Connected!")
+	logger.info("Connected!")
 
 	# win.mainloop()
 	t0 = time.time()
+	report = t0 - 1  # start periodic reporting
 	while True:
-		leo.read()
+		try:
+			leo.read()
+		except Exception as e:
+			logger.exception("Exception raised")
 		elapsed = time.time() - t0
 		time_widget.set(sec2timestring(elapsed))
+		msg = []
 		for key, widget in widgets.items():
 			v = getattr(leo, key)
 			if key in ("T0", "T1", "timestamp") and v is not None:
-				v = "%.3f" % v
-			widget.set(str(v))
+				try:
+					v = "%.3f" % v
+				except Exception as e:
+					logger.exception("Exception raised")
+			try:
+				widget.set(str(v))
+				msg.append(f"{key}={v}")
+			except Exception as e:
+				logger.exception("Exception raised")
+		if time.time() > report:
+			report = time.time() + REPORT_INTERVAL_S
+			logger.info(" ".join(msg))
 		win.update_idletasks()
 		win.update()
 		time.sleep(LOOP_DELAY_S)
