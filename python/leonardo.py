@@ -41,6 +41,7 @@ class Leonardo:
 		self.pin_t1 = self.leonardo.get_pin("a:1:i")
 		self.pin_ldr = self.leonardo.get_pin("a:2:i")
 		self.pin_pir = self.leonardo.get_pin("d:9:i")
+		self.pin_led = self.leonardo.get_pin("d:13:o")
 		self.pir_counter = 0
 		self.pir_previous = None
 		
@@ -59,7 +60,11 @@ class Leonardo:
 		self.PIR = self.read_raw(self.pin_pir)
 		if self.PIR and not self.pir_previous:
 			self.pir_counter += 1
-			logger.info("PIR motion detected")
+			logger.info(f"PIR motion detected {self.pir_counter}")
+			self.pin_led.write(1)
+		elif not self.PIR and self.pir_previous:
+			logger.info("PIR reset")
+			self.pin_led.write(0)
 		self.t0 = time.time()
 
 	def read_raw(self, pin, retries=5):
@@ -126,8 +131,10 @@ def main():
 	PIR         \t  PIR motion sensor
 	pir_counter \t  motion events counted
 	timestamp   \t  update time, s
-	time        \t  elapsed system time
+	time        \t  system Up time
 	"""
+	logger.info("#"*40)
+	logger.info(f"Starting {__file__}")
 	row = 0
 	widgets = {}
 	for line in config.strip().splitlines():
@@ -144,7 +151,7 @@ def main():
 	
 	logger.info("Connecting with Arduino ...")
 	leo = Leonardo()
-	logger.info("Connected!")
+	logger.info(f"Connected port {leo.port}!")
 
 	# win.mainloop()
 	t0 = time.time()
