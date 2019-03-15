@@ -155,7 +155,7 @@ def main():
 
 	# win.mainloop()
 	t0 = time.time()
-	report = t0 - 1  # start periodic reporting
+	report = t0  # start periodic reporting
 	while True:
 		try:
 			leo.read()
@@ -177,7 +177,7 @@ def main():
 			except Exception as e:
 				logger.exception("Exception raised")
 		if time.time() > report:
-			report = time.time() + REPORT_INTERVAL_S
+			report += REPORT_INTERVAL_S
 			logger.info(" ".join(msg))
 		win.update_idletasks()
 		win.update()
