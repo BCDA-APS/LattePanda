@@ -20,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__file__)
 
 UI_SCREEN = "leonardo.ui"
-LEO_COMM_PORT = "COM5"
+LEO_COMM_PORT = "COM3"
 LOOP_DELAY_S = 0.091
 REPORT_INTERVAL_S = 600
 
