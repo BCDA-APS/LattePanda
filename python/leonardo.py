@@ -29,6 +29,9 @@ class Leonardo:
 
 	def __init__(self, port=None):
 		self.T0, self.T1, self.LDR, self.PIR = None, None, None, None
+		self.LDR_TC, self.LDR_BR, self.LDR_BL = None, None, None
+		self.pos_x = None
+
 		self.t0 = time.time()
 		
 		self.port = port or LEO_COMM_PORT
@@ -44,15 +47,20 @@ class Leonardo:
 		self.pin_led = self.leonardo.get_pin("d:13:o")
 		self.pir_counter = 0
 		self.pir_previous = None
+		self.pin_ldr_tc = self.leonardo.get_pin("a:3:i")
+		self.pin_ldr_br = self.leonardo.get_pin("a:4:i")
+		self.pin_ldr_bl = self.leonardo.get_pin("a:5:i")
 		
-		for item in (self.pin_t0, self.pin_t1, self.pin_ldr, self.pin_pir):
+		for nm in ("t0 t1 ldr pir ldr_tc ldr_br ldr_bl".split()):
+			item = getattr(self, "pin_"+nm)
 			item.enable_reporting()
 			item.read()        # first read is usually None
 		
 		self.read()
 
 	def __str__(self):
-		a = [f"{getattr(self, nm)}=\"{obj}\"" for nm in (T0, T1, LDR, pir_counter, PIR)]
+		names = "T0 T1 LDR pir_counter PIR LDR_TC LDR_BR LDR_BL".split()
+		a = [f"{getattr(self, nm)}=\"{obj}\"" for nm in names]
 		s = "Leonardo(" + ",".join(a) + ")"
 		return s
 
@@ -70,6 +78,11 @@ class Leonardo:
 		elif not self.PIR and self.pir_previous:
 			logger.debug("PIR reset")
 			self.pin_led.write(0)
+		self.LDR_TC = self.read_raw(self.pin_ldr_tc)
+		self.LDR_BR = self.read_raw(self.pin_ldr_br)
+		self.LDR_BL = self.read_raw(self.pin_ldr_bl)
+		if None not in (self.LDR_BR, self.LDR_BL):
+			self.pos_x = (self.LDR_BR - self.LDR_BL) / (self.LDR_BR + self.LDR_BL)
 		self.t0 = time.time()
 
 	def read_raw(self, pin, retries=5):
@@ -135,6 +148,10 @@ def main():
 	LDR         \t  LDR photoresistor
 	PIR         \t  PIR motion sensor
 	pir_counter \t  motion events counted
+	LDR_TC      \t  position sensor, top-center
+	LDR_BR      \t  position sensor, bottom-right
+	LDR_BL      \t  position sensor, bottom-left
+	pos_x       \t  position, X-axis
 	timestamp   \t  update time, s
 	time        \t  system Up time
 	"""
