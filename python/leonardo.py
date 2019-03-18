@@ -15,7 +15,7 @@ logging.basicConfig(
 	filemode='a+', 
 	filename='logfile.txt', 
 	level=logging.INFO, 
-	format='%(asctime)s (%(module)s,%(lineno)d,%(levelname)s) %(message)s',
+	format='%(asctime)s (%(levelname)s,%(module)s,%(lineno)d) %(message)s',
 	)
 logger = logging.getLogger(__file__)
 
@@ -50,6 +50,11 @@ class Leonardo:
 			item.read()        # first read is usually None
 		
 		self.read()
+
+	def __str__(self):
+		a = [f"{getattr(self, nm)}=\"{obj}\"" for nm in (T0, T1, LDR, pir_counter, PIR)]
+		s = "Leonardo(" + ",".join(a) + ")"
+		return s
 
 	def read(self):
 		self.timestamp = time.time() - self.t0
@@ -175,7 +180,7 @@ def main():
 				widget.set(str(v))
 				msg.append(f"{key}={v}")
 			except Exception as e:
-				logger.exception("Exception raised")
+				logger.exception("Exception raised when leo={leo}")
 		msg.append(f"elapsed={elapsed}")
 		if time.time() > report:
 			report += REPORT_INTERVAL_S
