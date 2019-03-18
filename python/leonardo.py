@@ -188,7 +188,7 @@ def main():
 		msg = []
 		for key, widget in widgets.items():
 			v = getattr(leo, key)
-			if key in ("T0", "T1", "timestamp") and v is not None:
+			if key in ("T0", "T1", "timestamp", "pos_x") and v is not None:
 				try:
 					v = "%.3f" % v
 				except Exception as e:
