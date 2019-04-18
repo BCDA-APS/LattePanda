@@ -15,7 +15,8 @@ logging.basicConfig(
 	filemode='a+', 
 	filename='logfile.txt', 
 	level=logging.INFO, 
-	format='%(asctime)s (%(levelname)s,%(module)s,%(lineno)d) %(message)s',
+	format='%(asctime)s.%(msecs)03d (%(levelname)s,%(module)s,%(lineno)d) %(message)s',
+	datefmt='%Y-%m-%d %H:%M:%S',
 	)
 logger = logging.getLogger(__file__)
 
