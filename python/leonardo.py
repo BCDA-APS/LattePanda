@@ -58,8 +58,8 @@ class Leonardo:
 		
 		self.read()
 
-	def __str__(self):
-		names = "T0 T1 LDR pir_counter PIR LDR_TC LDR_BR LDR_BL".split()
+	def __repr__(self):
+		names = "port T0 T1 LDR pir_counter PIR LDR_TC LDR_BR LDR_BL".split()
 		a = [f"{getattr(self, nm)}=\"{obj}\"" for nm in names]
 		s = "Leonardo(" + ",".join(a) + ")"
 		return s
@@ -148,9 +148,9 @@ def main():
 	LDR         \t  LDR photoresistor
 	PIR         \t  PIR motion sensor
 	pir_counter \t  motion events counted
-	LDR_TC      \t  position sensor, top-center
-	LDR_BR      \t  position sensor, bottom-right
-	LDR_BL      \t  position sensor, bottom-left
+	LDR_TC      \t  photocell, top-center
+	LDR_BR      \t  photocell, bottom-right
+	LDR_BL      \t  photocell, bottom-left
 	pos_x       \t  position, X-axis
 	timestamp   \t  update time, s
 	time        \t  system Up time
@@ -182,7 +182,7 @@ def main():
 		try:
 			leo.read()
 		except Exception as e:
-			logger.exception("Exception raised")
+			logger.exception("Exception raised when leo={leo}\n{e}")
 		elapsed = sec2timestring(time.time() - t0)
 		time_widget.set(elapsed)
 		msg = []
@@ -192,12 +192,12 @@ def main():
 				try:
 					v = "%.3f" % v
 				except Exception as e:
-					logger.exception("Exception raised")
+					logger.exception("Exception raised when leo={leo}\n{e}")
 			try:
 				widget.set(str(v))
 				msg.append(f"{key}={v}")
 			except Exception as e:
-				logger.exception("Exception raised when leo={leo}")
+				logger.exception("Exception raised when leo={leo}\n{e}")
 		msg.append(f"elapsed={elapsed}")
 		if time.time() > report:
 			report += REPORT_INTERVAL_S
